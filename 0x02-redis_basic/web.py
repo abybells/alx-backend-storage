@@ -6,7 +6,7 @@ import requests
 from functools import wraps
 from typing import Callable
 
-
+count = 0
 redis_store = redis.Redis()
 '''The module-level Redis instance.
 '''
@@ -35,4 +35,11 @@ def get_page(url: str) -> str:
     '''Returns the content of a URL after caching the request's response,
     and tracking the request.
     '''
+    redis.Redis.set(f"cached:{url}", count)
+    redis.Redis.incr(f"count:{url}")
+    redis.Redis.setex(f"cached:{url}", 10, redis.Redis.get(f"cached:{url}"))
     return requests.get(url).text
+
+
+if __name__ == "__main__":
+    get_page('http://slowwly.robertomurray.co.uk')
